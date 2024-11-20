@@ -102,5 +102,38 @@ namespace api.Controllers
             return NoContent();
         }
 
+        [HttpPost]
+        [Route("{id:int}/file")]
+        public async Task<IActionResult> UploadFile([FromRoute] int id, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded.");
+
+            byte[] fileBytes;
+            using (var memoryStream = new MemoryStream())
+            {
+                await file.CopyToAsync(memoryStream);
+                fileBytes = memoryStream.ToArray();
+            }
+
+            await _stockRepo.UploadFIleAsync(id, fileBytes);
+
+            return NoContent();
+        }
+
+        [HttpGet]
+        [Route("{id:int}/file")]
+        public async Task<IActionResult> DownloadFileAsync([FromRoute] int id)
+        {
+            var fileBytes = await _stockRepo.GetFileAsync(id);
+
+            if (fileBytes == null || fileBytes.Length == 0)
+            {
+                return NotFound("File not found.");
+            }
+
+            var fileName = $"stock_{id}.pdf"; // Możesz zmienić nazwę pliku i rozszerzenie według potrzeb
+            return File(fileBytes, "application/octet-stream", fileName);
+        }
     }
 }

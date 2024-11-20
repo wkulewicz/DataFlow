@@ -78,6 +78,18 @@ namespace api.Repository
             return await _context.Stocks.FirstOrDefaultAsync(s => s.Symbol == symbol);
         }
 
+        public async Task<byte[]?> GetFileAsync(int id)
+        {
+            var existingStock = await _context.Stocks.FirstOrDefaultAsync(x => x.Id == id);
+
+            if (existingStock == null)
+            {
+                return null;
+            }
+            
+            return existingStock.File;
+        }
+
         public Task<bool> StockExists(int id)
         {
             return _context.Stocks.AnyAsync(s => s.Id == id);
@@ -102,6 +114,21 @@ namespace api.Repository
             await _context.SaveChangesAsync();
 
             return existingStock;
+        }
+
+        public async Task<Stock?> UploadFIleAsync(int id, byte[] fileBytes)
+        {
+            var stock = await _context.Stocks.FirstOrDefaultAsync(x => x.Id == id);
+
+            if (stock == null)
+            {
+                return null;
+            }
+
+            stock.File = fileBytes;
+            await _context.SaveChangesAsync();
+
+            return stock;
         }
     }
 }
